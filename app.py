@@ -1,4 +1,3 @@
-
 import streamlit as st
 import librosa
 import numpy as np
@@ -23,14 +22,11 @@ if not os.path.exists("fingerprint_lookup.json"):
 # Load database
 with open("song_database.json", "r") as f:
     song_database = json.load(f)
+print("Loaded song_database, entries:", len(song_database))
 
-fingerprint_lookup = defaultdict(list)
 with open("fingerprint_lookup.json", "r") as f:
-    raw_lookup = json.load(f)
-for str_key, value in raw_lookup.items():
-    parts = str_key.split("_")
-    key = (int(parts[0]), int(parts[1]), int(parts[2]))
-    fingerprint_lookup[key] = [tuple(v) for v in value]
+    fingerprint_lookup = json.load(f)
+print("Loaded fingerprint_lookup, entries:", len(fingerprint_lookup))
 
 def create_fingerprints(path):
     y, sr = librosa.load(path, sr=None)
@@ -50,8 +46,9 @@ def create_fingerprints(path):
 def match_song(query_fps):
     offset_counts = defaultdict(lambda: defaultdict(int))
     for (f1, f2, dt, t_q) in query_fps:
-        if (f1, f2, dt) in fingerprint_lookup:
-            for (song, t_db) in fingerprint_lookup[(f1, f2, dt)]:
+        key = f"{f1}_{f2}_{dt}"
+        if key in fingerprint_lookup:
+            for song, t_db in fingerprint_lookup[key]:
                 offset_counts[song][t_db - t_q] += 1
     scores = {song: max(offsets.values()) for song, offsets in offset_counts.items()}
     return sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -76,8 +73,9 @@ if mode == "Single Clip":
             st.success(f"Identified: {best_song}")
             offsets = []
             for (f1, f2, dt, t_q) in fps:
-                if (f1, f2, dt) in fingerprint_lookup:
-                    for (song, t_db) in fingerprint_lookup[(f1, f2, dt)]:
+                key = f"{f1}_{f2}_{dt}"
+                if key in fingerprint_lookup:
+                    for song, t_db in fingerprint_lookup[key]:
                         if song == best_song:
                             offsets.append(t_db - t_q)
             fig2, ax2 = plt.subplots()
