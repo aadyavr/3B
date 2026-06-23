@@ -1,8 +1,0 @@
-streamlit
-librosa
-numpy
-scipy
-matplotlib
-soundfile
-pandas
-gdown
