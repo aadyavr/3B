@@ -1,7 +1,9 @@
+%%writefile requirements.txt
+streamlit
 librosa
 numpy
 scipy
 matplotlib
 soundfile
 pandas
-streamlit
+gdown
